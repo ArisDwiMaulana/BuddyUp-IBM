@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BuddyUp — Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50: "#eff6ff", 100: "#dbeafe", 500: "#3b82f6", 600: "#2563eb", 700: "#1d4ed8" },
+          },
+        },
+      },
+    };
+  </script>
+  <!-- PocketBase JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.28.1/dist/pocketbase.umd.js"></script>
+  <!-- App modules -->
+  <script src="js/pb.js?v=4"></script>
+  <script src="js/auth.js?v=4"></script>
+</head>
+<body class="h-full bg-gradient-to-br from-brand-50 to-blue-100 flex items-center justify-center p-4">
+
+  <div class="w-full max-w-md">
+    <!-- Logo / Branding -->
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-600 shadow-lg mb-4">
+        <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      </div>
+      <h1 class="text-3xl font-bold text-gray-900">BuddyUp</h1>
+      <p class="mt-1 text-gray-500 text-sm">Your digital onboarding companion</p>
+    </div>
+
+    <!-- Login Card -->
+    <div class="bg-white rounded-2xl shadow-xl p-8">
+      <h2 class="text-xl font-semibold text-gray-800 mb-1">Welcome back</h2>
+      <p class="text-sm text-gray-500 mb-6">Sign in with your company credentials to continue.</p>
+
+      <!-- Error Banner -->
+      <div id="errorBanner"
+           class="hidden mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm flex items-start gap-2">
+        <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
+            clip-rule="evenodd" />
+        </svg>
+        <span id="errorMessage">Invalid credentials.</span>
+      </div>
+
+      <!-- Login Form -->
+      <form id="loginForm" novalidate>
+        <div class="mb-4">
+          <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email address</label>
+          <input
+            id="email"
+            type="email"
+            autocomplete="email"
+            placeholder="firstname.lastname@buddyup.com"
+            class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400
+                   focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition"
+            required
+          />
+          <p class="mt-1.5 text-xs text-gray-400">Format: <span class="font-mono text-gray-500">firstname.lastname@buddyup.com</span></p>
+        </div>
+
+        <div class="mb-6">
+          <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+          <div class="relative">
+            <input
+              id="password"
+              type="password"
+              autocomplete="current-password"
+              placeholder="••••••••"
+              class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400
+                     focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition pr-10"
+              required
+            />
+            <button type="button" id="togglePassword"
+              class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-600">
+              <svg id="eyeIcon" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          id="submitBtn"
+          class="w-full py-2.5 px-4 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg
+                 text-sm transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500
+                 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          <span id="btnText">Sign in</span>
+          <svg id="btnSpinner" class="hidden animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+        </button>
+      </form>
+
+      <p class="mt-6 text-center text-xs text-gray-400">
+        Don't have an account?
+        <button onclick="openRequestModal()"
+          class="font-medium text-brand-600 hover:underline focus:outline-none">
+          Request account from HR
+        </button>
+      </p>
+    </div>
+
+    <p class="mt-6 text-center text-xs text-gray-400">
+      &copy; <span id="year"></span> BuddyUp &mdash; All rights reserved.
+    </p>
+  </div>
+
+  <!-- ================================================================ -->
+  <!-- ACCOUNT REQUEST MODAL                                             -->
+  <!-- ================================================================ -->
+  <div id="requestModal"
+       class="fixed inset-0 z-50 hidden flex items-center justify-center p-4"
+       role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm"
+         onclick="closeRequestModal()"></div>
+
+    <!-- Modal panel -->
+    <div class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
+
+      <!-- Header -->
+      <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-brand-100 flex items-center justify-center">
+            <svg class="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+          </div>
+          <h2 id="modalTitle" class="text-base font-semibold text-gray-900">Request an Account</h2>
+        </div>
+        <button onclick="closeRequestModal()"
+          class="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
+          aria-label="Close">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Form state -->
+      <div id="modalForm">
+        <div class="px-6 pt-4 pb-2">
+          <p class="text-xs text-gray-500">
+            Fill in your details below. HR will review your request and create your account within 1–2 business days.
+          </p>
+        </div>
+        <form id="requestForm" novalidate class="px-6 pb-6 pt-3 space-y-4">
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-gray-700 mb-1">First name <span class="text-red-400">*</span></label>
+              <input id="reqFirstName" type="text" placeholder="Alex" required
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400
+                       focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition"/>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-700 mb-1">Last name <span class="text-red-400">*</span></label>
+              <input id="reqLastName" type="text" placeholder="Johnson" required
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400
+                       focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition"/>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">Personal email <span class="text-red-400">*</span></label>
+            <input id="reqEmail" type="email" placeholder="your.personal@gmail.com" required
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400
+                     focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition"/>
+            <p class="mt-1 text-xs text-gray-400">HR will contact you at this address.</p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">Division / Department <span class="text-red-400">*</span></label>
+            <input id="reqDivision" type="text" placeholder="e.g. Human Resources, Engineering…" required
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400
+                     focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition"/>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">Start date</label>
+            <input id="reqStartDate" type="date"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900
+                     focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition"/>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">Additional notes</label>
+            <textarea id="reqNotes" rows="2" placeholder="Anything else HR should know…"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400
+                     focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition resize-none"></textarea>
+          </div>
+
+          <!-- Inline error -->
+          <p id="reqError" class="hidden text-xs text-red-500 font-medium"></p>
+
+          <button type="submit"
+            class="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg
+                   transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500
+                   disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            id="reqSubmitBtn">
+            <span id="reqBtnText">Submit Request</span>
+            <svg id="reqSpinner" class="hidden animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+          </button>
+        </form>
+      </div>
+
+      <!-- Success state (hidden until submitted) -->
+      <div id="modalSuccess" class="hidden px-6 py-10 text-center">
+        <div class="w-14 h-14 rounded-2xl bg-green-100 flex items-center justify-center mx-auto mb-4">
+          <svg class="w-7 h-7 text-green-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <h3 class="text-base font-semibold text-gray-900 mb-1">Request submitted!</h3>
+        <p class="text-sm text-gray-500 mb-1">Your request will be processed by HR.</p>
+        <p class="text-xs text-gray-400 mb-6">You'll receive your login credentials at your personal email within 1–2 business days.</p>
+        <button onclick="closeRequestModal()"
+          class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg transition">
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    // Redirect to dashboard if already logged in
+    requireGuest();
+
+    // --- Toggle password visibility ---
+    document.getElementById("togglePassword").addEventListener("click", () => {
+      const pw = document.getElementById("password");
+      const icon = document.getElementById("eyeIcon");
+      if (pw.type === "password") {
+        pw.type = "text";
+        icon.innerHTML = `
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7
+               a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878
+               l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59
+               m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0
+               01-4.132 5.411m0 0L21 21" />`;
+      } else {
+        pw.type = "password";
+        icon.innerHTML = `
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7
+               -1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />`;
+      }
+    });
+
+    // --- Login form submit ---
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const email    = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const btn      = document.getElementById("submitBtn");
+      const spinner  = document.getElementById("btnSpinner");
+      const btnText  = document.getElementById("btnText");
+      const banner   = document.getElementById("errorBanner");
+      const errMsg   = document.getElementById("errorMessage");
+
+      if (!email || !password) {
+        errMsg.textContent = "Please enter your email and password.";
+        banner.classList.remove("hidden");
+        return;
+      }
+
+      // Loading state
+      btn.disabled = true;
+      spinner.classList.remove("hidden");
+      btnText.textContent = "Signing in…";
+      banner.classList.add("hidden");
+
+      try {
+        await pb.collection("users").authWithPassword(email, password);
+        window.location.replace("dashboard.html");
+      } catch (err) {
+        const msg =
+          err?.response?.message ||
+          err?.message ||
+          "Invalid email or password. Please try again.";
+        errMsg.textContent = msg;
+        banner.classList.remove("hidden");
+      } finally {
+        btn.disabled = false;
+        spinner.classList.add("hidden");
+        btnText.textContent = "Sign in";
+      }
+    });
+
+    // ----------------------------------------------------------------
+    // Account Request Modal
+    // ----------------------------------------------------------------
+    function openRequestModal() {
+      // Reset to form state each time it's opened
+      document.getElementById("modalForm").classList.remove("hidden");
+      document.getElementById("modalSuccess").classList.add("hidden");
+      document.getElementById("requestForm").reset();
+      document.getElementById("reqError").classList.add("hidden");
+      document.getElementById("requestModal").classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+      document.getElementById("reqFirstName").focus();
+    }
+
+    function closeRequestModal() {
+      document.getElementById("requestModal").classList.add("hidden");
+      document.body.style.overflow = "";
+    }
+
+    // Close on Escape key
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeRequestModal();
+    });
+
+    document.getElementById("requestForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const firstName = document.getElementById("reqFirstName").value.trim();
+      const lastName  = document.getElementById("reqLastName").value.trim();
+      const email     = document.getElementById("reqEmail").value.trim();
+      const division  = document.getElementById("reqDivision").value.trim();
+      const errorEl   = document.getElementById("reqError");
+
+      // Validate required fields
+      if (!firstName || !lastName || !email || !division) {
+        errorEl.textContent = "Please fill in all required fields.";
+        errorEl.classList.remove("hidden");
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errorEl.textContent = "Please enter a valid email address.";
+        errorEl.classList.remove("hidden");
+        return;
+      }
+      errorEl.classList.add("hidden");
+
+      // Simulate submission with a brief loading state
+      const btn     = document.getElementById("reqSubmitBtn");
+      const spinner = document.getElementById("reqSpinner");
+      const btnText = document.getElementById("reqBtnText");
+      btn.disabled = true;
+      spinner.classList.remove("hidden");
+      btnText.textContent = "Submitting…";
+
+      setTimeout(() => {
+        btn.disabled = false;
+        spinner.classList.add("hidden");
+        btnText.textContent = "Submit Request";
+        // Switch to success state
+        document.getElementById("modalForm").classList.add("hidden");
+        document.getElementById("modalSuccess").classList.remove("hidden");
+      }, 1200);
+    });
+  </script>
+</body>
+</html>

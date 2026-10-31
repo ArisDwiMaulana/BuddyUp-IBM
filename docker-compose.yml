@@ -1,0 +1,19 @@
+services:
+  pocketbase:
+    image: ghcr.io/muchobien/pocketbase:latest
+    container_name: buddyup-pocketbase
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    volumes:
+      - ./migrations:/pb_migrations
+      - ./data:/pb_data
+      - ./hooks:/pb_hooks
+      - ./public:/pb_public
+    command: ["serve", "--http=0.0.0.0:8090", "--automigrate", "--migrationsDir=/pb_migrations", "--hooksDir=/pb_hooks", "--publicDir=/pb_public", "--dir=/pb_data"]
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8090/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
